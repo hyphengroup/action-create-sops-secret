@@ -17,11 +17,13 @@ jobs:
         with:
           version: v3.7.1
       - uses: ./
-        with: 
+        with:
+          json_secrets_str: ${{ toJSON(secrets) }}
           prefix: STAGING_ENV_
           name: env-secrets
       - uses: ./
-        with: 
+        with:
+          json_secrets_str: ${{ toJSON(secrets) }}
           prefix: STAGING_CERT_
           name: certs
       - run: |

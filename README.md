@@ -23,11 +23,13 @@ This Workflow
 ```yaml
 - uses: mdgreenwald/mozilla-sops-action@v1.1.0
 - uses: hyphengroup/action-create-sops-secret@v0.1.0
-  with: 
+  with:
+    json_secrets_str: ${{ toJSON(secrets) }}
     prefix: STAGING_ENV_
     name: env-secrets
 - uses: hyphengroup/action-create-sops-secret@v0.1.0
-  with: 
+  with:
+    json_secrets_str: ${{ toJSON(secrets) }}
     prefix: STAGING_CERT_
     name: certs
 ```
