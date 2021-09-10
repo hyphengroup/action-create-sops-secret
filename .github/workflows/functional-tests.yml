@@ -27,5 +27,5 @@ jobs:
           prefix: STAGING_CERT_
           name: certs
       - run: |
-          sops -d env-secrets.yml
-          sops -d certs.yml
+          sops -d env-secrets.yaml
+          sops -d certs.yaml
