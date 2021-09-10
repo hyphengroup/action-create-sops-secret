@@ -4,8 +4,8 @@ inputs:
   prefix:
     description: the prefix of the repository github secrets to include
     required: true
-  name:
-    description: the name of the secret to be created
+  file_path:
+    description: the path to write the file, the name of the secret is derived as basename
     required: true
   json_secrets_str:
     description: >
@@ -17,9 +17,12 @@ runs:
   - shell: bash
     env:
       PREFIX: ${{ inputs.prefix }}
-      NAME: ${{ inputs.name }}
+      FILE_PATH: ${{ inputs.file_path }}
       JSON_SECRETS_STR: ${{ inputs.json_secrets_str }}
     run: |
+      mkdir -p `dirname ${FILE_PATH}`
+      FILE_NAME=${FILE_PATH##*/}
+      SECRET_NAME=${FILE_NAME%.*}
       cat <<'EOF' > filter.jq
       with_entries( select(.key | startswith($prefix)) | .key = (.key | sub($prefix; "")) ) | {
         "apiVersion": "isindir.github.com/v1alpha2",
@@ -41,6 +44,6 @@ runs:
       }
       EOF
 
-      jq -f filter.jq --arg name "${NAME}" --arg prefix "${PREFIX}" <<< ${JSON_SECRETS_STR} \
-        | sops -e --input-type="json" --output-type="yaml" /dev/stdin > ${NAME}.yaml
+      jq -f filter.jq --arg name "${SECRET_NAME}" --arg prefix "${PREFIX}" <<< ${JSON_SECRETS_STR} \
+        | sops -e --input-type="json" --output-type="yaml" /dev/stdin > ${FILE_PATH}
       rm filter.jq
