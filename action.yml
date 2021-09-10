@@ -1,0 +1,47 @@
+name: 'Create Sops Secret'
+description: 'Create and Encrypt sops secrets for isindir/sops-secrets-operator'
+inputs:
+  prefix:
+    description: the prefix of the repository github secrets to include
+    required: true
+  name:
+    description: the name of the secret to be created
+    required: true
+  json_secrets_str:
+    description: >
+      json encoded list of secrets.
+    required: true
+    default: ${{ toJSON(secrets) }}
+runs:
+  using: composite
+  steps:
+  - shell: bash
+    env:
+      PREFIX: ${{ inputs.prefix }}
+      NAME: ${{ inputs.name }}
+      JSON_SECRETS_STR: ${{ inputs.json_secrets_str }}
+    run: |
+      cat <<'EOF' > filter.jq
+      with_entries( select(.key | startswith($prefix)) | .key = (.key | sub($prefix; "")) ) | {
+        "apiVersion": "isindir.github.com/v1alpha2",
+        "kind": "SopsSecret",
+        "metadata":{
+          "name": $name,
+          "annotations": {
+            "secret-names.cag.codes": $name
+          }
+        },
+        "spec":{
+          "secretTemplates": [
+            {
+              "name": $name,
+              "data": .
+            }
+          ]
+        }
+      }
+      EOF
+
+      jq -f filter.jq --arg name "${NAME}" --arg prefix "${PREFIX}" <<< ${JSON_SECRETS_STR} \
+        | sops -e --input-type="json" --output-type="yaml" /dev/stdin > ${NAME}.yaml
+      rm filter.jq

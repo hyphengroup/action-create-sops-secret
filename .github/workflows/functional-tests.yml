@@ -1,0 +1,29 @@
+name: "Functional Tests"
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - 'releases/*'
+
+jobs:
+  functional-tests:
+    runs-on: "ubuntu-latest"
+    steps:
+      - uses: actions/checkout@v1
+        # using https://github.com/mozilla/sops/blob/v3.7.1/pgp/sops_functional_tests_key.asc
+      - run: gpg --import pgp/sops_functional_tests_key.asc
+      - uses: mdgreenwald/mozilla-sops-action@v1.1.0
+        with:
+          version: v3.7.1
+      - uses: ./
+        with: 
+          prefix: STAGING_ENV_
+          name: env-secrets
+      - uses: ./
+        with: 
+          prefix: STAGING_CERT_
+          name: certs
+      - run: |
+          sops -d env-secrets.yml
+          sops -d certs.yml
