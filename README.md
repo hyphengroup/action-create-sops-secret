@@ -2,6 +2,8 @@
 
 Creates encrypted isindir/sops-secrets-operator yml manifests from GitHub secrets
 
+> NOTE: This action was written before GitHub added support for environments and has yet to be updated to use environments!
+
 # Usage
 
 pre-req:
